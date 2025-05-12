@@ -56,6 +56,15 @@ def _scan_checkpoints(checkpoint_callback: Checkpoint, logged_model_time: dict) 
     return checkpoints
 
 
+def sanitize_dict(d):
+    safe = {}
+    for k, v in d.items():
+        if isinstance(v, (str, int, float, bool)) or v is None:
+            safe[k] = v
+        else:
+            safe[k] = str(v)
+    return safe
+
 def _log_hyperparams(trainer: "pl.Trainer") -> None:
     if not trainer.loggers:
         return
@@ -69,12 +78,9 @@ def _log_hyperparams(trainer: "pl.Trainer") -> None:
         lightning_hparams = pl_module.hparams_initial
         inconsistent_keys = []
         for key in lightning_hparams.keys() & datamodule_hparams.keys():
-            if key == "_class_path":
-                # Skip LightningCLI's internal hparam
-                continue
             lm_val, dm_val = lightning_hparams[key], datamodule_hparams[key]
             if (
-                type(lm_val) != type(dm_val)  # noqa: E721
+                type(lm_val) != type(dm_val)
                 or (isinstance(lm_val, Tensor) and id(lm_val) != id(dm_val))
                 or lm_val != dm_val
             ):
@@ -91,12 +97,8 @@ def _log_hyperparams(trainer: "pl.Trainer") -> None:
     elif datamodule_log_hyperparams:
         hparams_initial = trainer.datamodule.hparams_initial
 
-    # Don't log LightningCLI's internal hparam
-    if hparams_initial is not None:
-        hparams_initial = {k: v for k, v in hparams_initial.items() if k != "_class_path"}
-
     for logger in trainer.loggers:
         if hparams_initial is not None:
-            logger.log_hyperparams(hparams_initial)
+            logger.log_hyperparams(sanitize_dict(hparams_initial))
         logger.log_graph(pl_module)
         logger.save()
