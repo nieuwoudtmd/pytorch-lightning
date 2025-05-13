@@ -132,7 +132,7 @@ max-complexity = 10
 
 [tool.mypy]
 files = [
-    "src/lightning",
+    "src/pytorch-lightning",
 ]
 
 install_types = "True"
