@@ -53,7 +53,7 @@ from typing import Optional
 import setuptools
 import setuptools.command.egg_info
 
-_PACKAGE_NAME = os.environ.get("PACKAGE_NAME")
+_PACKAGE_NAME = "lightning"
 _PACKAGE_MAPPING = {
     "lightning": "lightning",
     "pytorch": "pytorch_lightning",
